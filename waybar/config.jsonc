@@ -1,0 +1,74 @@
+// Waybar — minimal bottom bar for Hyprland (Justin)
+// Icon-only: details live in hover tooltips; clicks open floating popups
+// (see the "waybar-modals" window rule in hyprland.lua)
+{
+  "layer": "top",
+  "position": "bottom",
+  "height": 28,
+  "spacing": 6,
+  "reload_style_on_change": true,
+
+  "modules-left":   ["hyprland/workspaces"],
+  "modules-center": [],
+  "modules-right":  ["tray", "custom/fcitx", "bluetooth", "pulseaudio", "network", "battery", "clock"],
+
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "sort-by": "number",
+    "on-click": "activate"
+  },
+
+  "tray": { "spacing": 8, "icon-size": 16 },
+
+  "clock": {
+    "format": "{:%H:%M}",
+    "tooltip-format": "<big>{:%A, %d %B %Y}</big>\n<tt><small>{calendar}</small></tt>"
+  },
+
+  "battery": {
+    "bat": "BAT1",
+    "states": { "warning": 30, "critical": 15 },
+    "format": "{icon}",
+    "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰂂"],
+    "format-charging": "󰂄",
+    "format-plugged": "󰚥",
+    "tooltip-format": "{capacity}% — {timeTo}"
+  },
+
+  "network": {
+    "format-wifi": "{icon}",
+    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+    "format-ethernet": "󰀂",
+    "format-disconnected": "󰤮",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}: {ipaddr}/{cidr}",
+    "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
+    "tooltip-format-disconnected": "Disconnected",
+    "on-click": "nm-connection-editor"
+  },
+
+  "bluetooth": {
+    "format": "󰂯",
+    "format-disabled": "󰂲",
+    "format-off": "󰂲",
+    "format-connected": "󰂱",
+    "tooltip-format": "{controller_alias}",
+    "tooltip-format-connected": "{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "on-click": "blueman-manager"
+  },
+
+  "pulseaudio": {
+    "format": "{icon}",
+    "format-muted": "󰝟",
+    "format-icons": { "headphone": "󰋋", "default": ["󰕿", "󰖀", "󰕾"] },
+    "tooltip-format": "{desc}\n{volume}%",
+    "scroll-step": 5,
+    "on-click": "pavucontrol"
+  },
+
+  "custom/fcitx": {
+    "exec": "/home/hongnoul/.config/waybar/scripts/fcitx-indicator.sh",
+    "return-type": "json",
+    "on-click": "fcitx5-remote -t"
+  }
+}

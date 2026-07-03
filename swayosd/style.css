@@ -1,0 +1,29 @@
+/* swayosd — matches waybar zinc/dark, square corners */
+window#osd {
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+}
+
+#container {
+  margin: 14px 18px;
+}
+
+image, label {
+  color: #e4e4e7;
+}
+
+progressbar {
+  min-height: 6px;
+  border-radius: 0;
+}
+
+trough {
+  background: #3f3f46;
+  border-radius: 0;
+}
+
+progress {
+  background: #e4e4e7;
+  border-radius: 0;
+}

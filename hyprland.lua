@@ -37,6 +37,10 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("swaync")
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
+    hl.exec_cmd("swayosd-server") -- volume/brightness OSD
+    -- IM env vars live in ~/.config/environment.d/fcitx5.conf; -r replaces
+    -- any instance started outside the session
+    hl.exec_cmd("fcitx5 -d -r")
 end)
 
 
@@ -129,9 +133,9 @@ hl.animation({ leaf = "layersIn",      enabled = true,  speed = 4,    bezier = "
 hl.animation({ leaf = "layersOut",     enabled = true,  speed = 1.5,  bezier = "linear",       style = "fade" })
 hl.animation({ leaf = "fadeLayersIn",  enabled = true,  speed = 1.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true,  speed = 1.39, bezier = "almostLinear" })
-hl.animation({ leaf = "workspaces",    enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
-hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 1.21, bezier = "almostLinear", style = "fade" })
-hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "workspaces",    enabled = true,  speed = 1.94, spring = "easy", style = "slide" })
+hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 1.21, spring = "easy", style = "slide" })
+hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 1.94, spring = "easy", style = "slide" })
 hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "quick" })
 
 -- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
@@ -170,7 +174,9 @@ hl.config({
         kb_layout  = "us",
         kb_variant = "",
         kb_model   = "",
-        kb_options = "grp:alt_shift_toggle",
+        -- Right Alt = 한/영 toggle, Right Ctrl = hanja (fcitx5-hangul listens
+        -- for the Hangul/Hangul_Hanja keysyms these emit)
+        kb_options = "korean:ralt_hangul,korean:rctrl_hanja",
         kb_rules   = "",
 
         follow_mouse = 1,
@@ -178,7 +184,7 @@ hl.config({
         sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
 
         touchpad = {
-            natural_scroll = false,
+            natural_scroll = true,
         },
     },
 })
@@ -212,6 +218,25 @@ hl.bind(mainMod .. " + D", hl.dsp.window.fullscreen({ mode = "maximized", action
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
 
+-- Screenshot submap: SUPER + S, then S = snippet (region), W = window, F = full screen.
+-- All copy to clipboard; Escape cancels. (https://github.com/hyprwm/Hyprland/discussions/2617)
+hl.bind(mainMod .. " + S", hl.dsp.submap("screenshot"))
+
+hl.define_submap("screenshot", function()
+    local function shoot(cmd)
+        return function()
+            hl.exec_cmd(cmd)
+            hl.dispatch(hl.dsp.submap("reset"))
+        end
+    end
+
+    hl.bind("S", shoot([[grim -g "$(slurp -d)" - | wl-copy]]))
+    hl.bind("W", shoot([[grim -g "$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')" - | wl-copy]]))
+    hl.bind("F", shoot([[grim -o "$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')" - | wl-copy]]))
+
+    hl.bind("escape", hl.dsp.submap("reset"))
+end)
+
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
@@ -226,10 +251,6 @@ for i = 1, 10 do
     hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
 end
 
--- Special workspace (scratchpad)
-hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
-
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
@@ -238,11 +259,17 @@ hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
--- Multimedia keys for volume
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
-hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
-hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
+-- Move windows using keybinds
+
+-- Multimedia keys for volume — swayosd-client adjusts the level and shows the OSD
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("swayosd-client --output-volume raise --max-volume 100"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("swayosd-client --output-volume lower"),                  { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"),            { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("swayosd-client --input-volume mute-toggle"),             { locked = true, repeating = true })
+
+-- Brightness keys
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("swayosd-client --brightness raise"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("swayosd-client --brightness lower"), { locked = true, repeating = true })
 
 -- Requires playerctl
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
@@ -279,4 +306,15 @@ hl.window_rule({
     },
 
     no_focus = true,
+})
+
+hl.window_rule({
+    -- Waybar click targets (pavucontrol, btop, nm-connection-editor) open as
+    -- centered floating modals instead of tiling
+    name  = "waybar-modals",
+    match = { class = "^(org\\.pulseaudio\\.pavucontrol|pavucontrol|nm-connection-editor|\\.?blueman-manager|btop-float)$" },
+
+    float  = true,
+    center = true,
+    size   = "40% 60%",
 })
