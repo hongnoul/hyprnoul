@@ -345,6 +345,17 @@ hl.layer_rule({
     animation = "fade",
 })
 
+hl.layer_rule({
+    -- Liquid glass power-profile menu (waybar battery click): glass from
+    -- HyprGlass; the QML paints only the tint. Popin like the launcher —
+    -- it's a menu, shown rarely, so the mid-animation refraction warp is
+    -- acceptable.
+    name  = "power-glass",
+    match = { namespace = "qs-power" },
+
+    animation = "popin 85%",
+})
+
 
 -----------------
 ---- PLUGINS ----
@@ -389,4 +400,5 @@ if hl.plugin.hyprglass then
 
     hg.layer("rofi", { preset = "launcher" })
     hg.layer("qs-osd", { preset = "launcher" })
+    hg.layer("qs-power", { preset = "launcher" })
 end

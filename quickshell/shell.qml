@@ -9,6 +9,9 @@
 // The OSD window paints only the glass *tint*; refraction/blur/specular come
 // from the HyprGlass plugin keyed on the "qs-osd" layer namespace (see the
 // PLUGINS section of hyprland.lua).
+//
+// Also hosts the power-profile menu (PowerMenu.qml, namespace "qs-power"),
+// opened from the waybar battery icon via `qs ipc call power toggle`.
 
 import QtQuick
 import Quickshell
@@ -24,6 +27,8 @@ ShellRoot {
     }
 
     OsdWindow { id: osd }
+
+    PowerMenu { id: powerMenu }
 
     // Baseline guards: snapshot levels when a node becomes ready (startup and
     // default-device switches) so those transitions never flash the OSD, and
@@ -139,5 +144,10 @@ ShellRoot {
             if (max > 0)
                 osd.show("brightness", parseInt(curBrightness.text()) / max, false);
         }
+    }
+
+    IpcHandler {
+        target: "power"
+        function toggle(): void { powerMenu.toggle(); }
     }
 }

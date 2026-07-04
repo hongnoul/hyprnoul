@@ -32,7 +32,8 @@
     "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰂂"],
     "format-charging": "󰂄",
     "format-plugged": "󰚥",
-    "tooltip-format": "{capacity}% — {timeTo}"
+    "tooltip-format": "{capacity}% — {timeTo}",
+    "on-click": "qs ipc call power toggle"
   },
 
   "network": {
