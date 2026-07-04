@@ -37,7 +37,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("swaync")
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
-    hl.exec_cmd("swayosd-server") -- volume/brightness OSD
+    hl.exec_cmd("qs") -- quickshell volume/brightness OSD (~/.config/quickshell/shell.qml)
     -- IM env vars live in ~/.config/environment.d/fcitx5.conf; -r replaces
     -- any instance started outside the session
     hl.exec_cmd("fcitx5 -d -r")
@@ -265,15 +265,16 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Move windows using keybinds
 
--- Multimedia keys for volume — swayosd-client adjusts the level and shows the OSD
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("swayosd-client --output-volume raise --max-volume 100"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("swayosd-client --output-volume lower"),                  { locked = true, repeating = true })
-hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"),            { locked = true, repeating = true })
-hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("swayosd-client --input-volume mute-toggle"),             { locked = true, repeating = true })
+-- Multimedia keys — set levels natively (never queues behind the OSD); the
+-- quickshell OSD watches PipeWire and displays the latest value itself
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),        { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),       { locked = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),     { locked = true })
 
--- Brightness keys
-hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("swayosd-client --brightness raise"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("swayosd-client --brightness lower"), { locked = true, repeating = true })
+-- Brightness keys — no PipeWire equivalent, so the bind pings the OSD over IPC
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -q s 5%+ && qs ipc call osd brightness"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -q s 5%- && qs ipc call osd brightness"), { locked = true, repeating = true })
 
 -- Requires playerctl
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
@@ -333,6 +334,17 @@ hl.layer_rule({
     animation = "popin 85%",
 })
 
+hl.layer_rule({
+    -- Liquid glass OSD (volume/brightness): glass from HyprGlass; the QML in
+    -- ~/.config/quickshell/ paints only the tint. Fade, not popin — popin's
+    -- scale warps the glass refraction mid-animation, and the OSD shows far
+    -- more often than the launcher.
+    name  = "osd-glass",
+    match = { namespace = "qs-osd" },
+
+    animation = "fade",
+})
+
 
 -----------------
 ---- PLUGINS ----
@@ -376,4 +388,5 @@ if hl.plugin.hyprglass then
     })
 
     hg.layer("rofi", { preset = "launcher" })
+    hg.layer("qs-osd", { preset = "launcher" })
 end
