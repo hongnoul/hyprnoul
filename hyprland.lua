@@ -41,6 +41,10 @@ hl.on("hyprland.start", function ()
     -- IM env vars live in ~/.config/environment.d/fcitx5.conf; -r replaces
     -- any instance started outside the session
     hl.exec_cmd("fcitx5 -d -r")
+
+    -- HyprGlass plugin (see PLUGINS section). The reload re-parses this
+    -- config with the plugin present so the hg.* glass config applies.
+    hl.exec_cmd("hyprctl plugin load /home/hongnoul/.local/share/hyprland-plugins/hyprglass.so && hyprctl reload")
 end)
 
 
@@ -318,3 +322,58 @@ hl.window_rule({
     center = true,
     size   = "40% 60%",
 })
+
+hl.layer_rule({
+    -- Liquid glass launcher: the glass itself (blur + refraction) comes from
+    -- the HyprGlass plugin (see PLUGINS section); rofi's theme lives in
+    -- ~/.config/rofi/config.rasi.
+    name  = "rofi-glass",
+    match = { namespace = "rofi" },
+
+    animation = "popin 85%",
+})
+
+
+-----------------
+---- PLUGINS ----
+-----------------
+
+-- HyprGlass: Apple Liquid Glass optics (edge refraction, chromatic
+-- aberration, specular/fresnel, frosted blur) on the rofi launcher.
+-- Prebuilt for Hyprland 0.55.4: https://github.com/hyprnux/hyprglass
+-- Layer support hooks a private renderLayer function — after a Hyprland
+-- upgrade, redownload a matching release before relying on it.
+--
+-- Plugins can't be loaded from lua config; the autostart block loads the
+-- .so via hyprctl and re-runs this config so the guard below passes.
+
+if hl.plugin.hyprglass then
+    local hg = hl.plugin.hyprglass
+
+    hg.config({
+        default_theme = "dark",
+        layers = { enabled = 1 },
+    })
+
+    -- Refraction-forward clear glass: light on frost so the lensing and
+    -- edge dispersion read clearly. The rasi theme supplies the tint;
+    -- brightness/saturation overrides counter the dark theme's default
+    -- dimming, which reads as smoked (not clear) glass.
+    hg.preset("launcher", {
+        inherits             = "clear",
+        blur_strength        = 1.2,
+        refraction_strength  = 0.85,
+        chromatic_aberration = 0.6,
+        lens_distortion      = 0.35,
+        edge_thickness       = 0.07,
+        glass_opacity        = 0.8,
+        dark = {
+            brightness = 1.0,
+            contrast   = 0.95,
+            saturation = 0.95,
+            vibrancy   = 0.25,
+        },
+    })
+
+    hg.layer("rofi", { preset = "launcher" })
+end

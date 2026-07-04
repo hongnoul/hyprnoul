@@ -1,0 +1,90 @@
+/* Liquid glass drun launcher.
+ *
+ * Rofi only paints the glass *tint* (translucent charcoal, radii, type);
+ * the actual glass — refraction, chromatic aberration, specular edge,
+ * frosted blur — is rendered by the HyprGlass plugin configured in
+ * ~/.config/hypr/hyprland.lua (hg.layer("rofi", ...)). The effect masks on
+ * partial alpha, so the window background must stay translucent (not 0%,
+ * not 100%).
+ */
+
+configuration {
+    modes:               "drun";
+    show-icons:          true;
+    icon-theme:          "Papirus-Dark";
+    drun-display-format: "{name}";
+}
+
+/* Discard rofi's built-in default theme entirely — without this, unstyled
+ * widgets/states (element normal, listview separator, ...) keep its opaque
+ * backgrounds and paint over the glass. */
+@theme "/dev/null"
+
+* {
+    /* Transparent by default so inner boxes never paint over the glass. */
+    background-color: transparent;
+    text-color:       rgba(235, 240, 255, 92%);
+    font:             "Adwaita Sans Medium 12";
+
+    margin:  0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    location:         center;
+    width:            640px;
+
+    /* Faint charcoal tint only — the specular edge, refraction, and blur all
+     * come from the HyprGlass plugin, which keys off this partial alpha
+     * (fully transparent corners are skipped, so radii stay crisp). */
+    background-color: rgba(22, 22, 30, 22%);
+    border-radius:    26px;
+    padding:          8px;
+}
+
+inputbar {
+    children:         [ entry ];
+    background-color: rgba(255, 255, 255, 7%);
+    border-radius:    18px;  /* concentric: window 26px − 8px padding */
+    padding:          14px 18px;
+    font:             "Adwaita Sans Medium 16";
+}
+
+entry {
+    placeholder:       "Search";
+    placeholder-color: rgba(255, 255, 255, 40%);
+    cursor:            text;
+}
+
+listview {
+    lines:     8;
+    columns:   1;
+    spacing:   2px;
+    margin:    8px 4px 0;
+    scrollbar: false;
+    cycle:     true;
+}
+
+element {
+    padding:       9px 12px;
+    spacing:       12px;
+    border-radius: 13px;
+    cursor:        pointer;
+}
+
+/* Selection = "thicker glass": a brighter pane of the same material. */
+element selected.normal {
+    background-color: rgba(255, 255, 255, 15%);
+}
+
+element-icon {
+    size:   1.8em;
+    cursor: inherit;
+}
+
+element-text {
+    text-color:     inherit;
+    vertical-align: 0.5;
+    cursor:         inherit;
+}
