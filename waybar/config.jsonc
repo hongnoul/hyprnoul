@@ -10,7 +10,7 @@
 
   "modules-left":   ["hyprland/workspaces"],
   "modules-center": [],
-  "modules-right":  ["tray", "custom/fcitx", "bluetooth", "pulseaudio", "network", "battery", "clock"],
+  "modules-right":  ["tray", "custom/theme", "custom/fcitx", "bluetooth", "pulseaudio", "network", "battery", "clock"],
 
   "hyprland/workspaces": {
     "format": "{name}",
@@ -32,7 +32,10 @@
     "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰂂"],
     "format-charging": "󰂄",
     "format-plugged": "󰚥",
+    "format-full": "󰚥",
     "tooltip-format": "{capacity}% — {timeTo}",
+    "tooltip-format-plugged": "{capacity}% — Not charging",
+    "tooltip-format-full": "{capacity}% — Full",
     "on-click": "qs ipc call power toggle"
   },
 
@@ -44,7 +47,7 @@
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}: {ipaddr}/{cidr}",
     "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
     "tooltip-format-disconnected": "Disconnected",
-    "on-click": "nm-connection-editor"
+    "on-click": "kitty --class nmtui-float -e nmtui"
   },
 
   "bluetooth": {
@@ -55,7 +58,7 @@
     "tooltip-format": "{controller_alias}",
     "tooltip-format-connected": "{device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}",
-    "on-click": "blueman-manager"
+    "on-click": "kitty --class bluetui-float -e bluetui"
   },
 
   "pulseaudio": {
@@ -65,6 +68,14 @@
     "tooltip-format": "{desc}\n{volume}%",
     "scroll-step": 5,
     "on-click": "pavucontrol"
+  },
+
+  "custom/theme": {
+    "exec": "/home/hongnoul/.config/waybar/scripts/theme-toggle.sh status",
+    "return-type": "json",
+    "interval": "once",
+    "signal": 8,
+    "on-click": "/home/hongnoul/.config/waybar/scripts/theme-toggle.sh toggle"
   },
 
   "custom/fcitx": {

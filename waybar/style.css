@@ -37,7 +37,7 @@ tooltip {
 }
 
 /* every widget: identical 28x28 square cell, glyph centered inside it */
-#battery, #network, #bluetooth, #pulseaudio, #tray {
+#battery, #network, #bluetooth, #pulseaudio, #tray, #custom-theme {
   padding: 0;
   min-width: 28px;
   color: #e4e4e7;
@@ -50,7 +50,7 @@ tooltip {
 }
 
 /* icon-only widgets: one shared glyph size so mixed icons match optically */
-#battery, #network, #bluetooth, #pulseaudio {
+#battery, #network, #bluetooth, #pulseaudio, #custom-theme {
   font-size: 15px;
 }
 
